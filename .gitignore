@@ -1,0 +1,11 @@
+#files to ignoring
+*.pyc
+*.pyo
+*.hg*
+*.kpf
+*.sock
+*.conf
+*.config
+local_settigs.py
+debug.log
+pip-log.txt
