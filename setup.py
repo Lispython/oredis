@@ -3,19 +3,22 @@
 
 import os
 from setuptools import setup
-import oredis
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+__version__ = '0.1'
+__author__ = 'Alexandr'
+__email__ = 'alex@obout.ru'
 
 setup(
     name = 'oredis',
     description = 'Object-hash mapping library for Redis',
     long_description = read('README.markdown'),
     license = 'BSD',
-    version = oredis.__version__,
-    author = oredis.__author__,
-    author_email = oredis.__email__,
+    version = __version__,
+    author = __author__,
+    author_email = __email__,
     url = 'http://github.com/lispython/oredis/',
     keywords = ['Object', 'hash mapping', 'redis'],
     classifiers = [
