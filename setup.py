@@ -32,5 +32,5 @@ setup(
     packages = ["oredis"], 
     platforms='any',
     test_suite = 'tests', 
-    install_requires = ['redis-py']
+    install_requires = ['redis']
     )
