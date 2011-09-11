@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
-'''
-Models for Object-hash mpping library for Redis
-'''
+"""
+oredis.models
+~~~~~~~~~~~~~
 
+Models for Object-hash mapping library for Redis
+
+:copyright: (c) 2011 by Alexandr Lispython (alex@obout.ru).
+:license: BSD, see LICENSE for more details.
+"""
 
 from oredis.manager import Manager
 from oredis.exceptions import NotFoundError
 from oredis.fields import Field, PrimaryKey
-
 
 
 class BaseModel(type):
@@ -17,10 +21,10 @@ class BaseModel(type):
         new._managers = {}
         module = attrs['__module__']
         for attr, value in attrs.iteritems():
-            if not attr.startswith('__') and isinstance(value, Field): 
+            if not attr.startswith('__') and isinstance(value, Field):
                 new._fields[attr] = value
                 value.contribute_to_class(new, attr)
-                    
+
             elif isinstance(value, Manager):
                 new._managers[attr] = value
                 value.contribute_to_class(new, attr)
@@ -29,7 +33,7 @@ class BaseModel(type):
             manager = Manager()
             new._managers['objects'] = manager
             manager.contribute_to_class(new, 'objects')
-            
+
         if not 'id' in new._fields:
             field = PrimaryKey()
             new._fields['id'] = field
@@ -59,7 +63,7 @@ class Model(object):
 
     def __str__(self):
         return u"%s object" % self.__class__.__name__
-    
+
     def __repr__(self):
         return u'<%s: %s>' % (self.__class__.__name__, self.id)
 
@@ -81,7 +85,7 @@ class Model(object):
         if self._loaded and not value:
             return self._fields[field_name].load(self)
         return self.set_field(field_name, value or self._fields[field_name].default)
-    
+
     def set_field(self, field, value):
         self._data[field] = value
         return self._data[field]
@@ -98,13 +102,13 @@ class Model(object):
         for x in self._queries:
             total_time += x[-1]
         return {
-            'model': self.__class__.  __name__.lower(), 
+            'model': self.__class__.  __name__.lower(),
             'count': self._queries_counter,
             'queries': self._queries,
             'total_time': total_time
             }
-    
-    
+
+
     @property
     def redis(self):
         return self._connection
@@ -128,7 +132,7 @@ class Model(object):
         for name, field in self._fields.items():
             field.delete(self)
         return True
-    
+
     @classmethod
     def get(cls, id):
         if not cls._connection.sismember(cls.id.key(), id):

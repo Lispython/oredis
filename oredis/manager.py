@@ -1,11 +1,19 @@
 # -*- coding:  utf-8 -*-
 """
+oredis.manager
+~~~~~~~~~~~~~~
+
 Manager class for redis models
+
+:copyright: (c) 2011 by Alexandr Lispython (alex@obout.ru).
+:license: BSD, see LICENSE for more details.
 """
+
+
 from redis import Redis
 
 
-class ManagerDescriptor(object):    
+class ManagerDescriptor(object):
     def __init__(self, manager):
         self.manager = manager
 
@@ -15,7 +23,7 @@ class ManagerDescriptor(object):
         return self.manager
 
 
-    
+
 class Manager(object):
     """Functons for managing redis queries
     """
@@ -34,7 +42,7 @@ class Manager(object):
     @property
     def connection(self):
         return self._connection
-    
+
     def contribute_to_class(self, model, name):
         self._model = model
         self._name = name

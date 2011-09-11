@@ -1,11 +1,21 @@
 # -*- coding:  utf-8 -*-
+"""
+oredis.utils
+~~~~~~~~~~~~
+
+Library utils
+
+:copyright: (c) 2011 by Alexandr Lispython (alex@obout.ru).
+:license: BSD, see LICENSE for more details.
+"""
+
+
 
 import time
 import types
 import datetime
-import chardet
 from decimal import Decimal
-import logging
+
 
 def is_protected_type(obj):
     """Determine if the object instance is of a protected type.
@@ -70,11 +80,16 @@ def super_force_unicode(s):
     try:
         text = force_unicode(s)
     except UnicodeDecodeError:
-        d = chardet.detect(s)
         try:
-            s = text.decode(d.get('encoding'))
-        except:
-            raise UnicodeDecodeError(u'Enconing fail')  
+            from chardet import detect
+        except ImportError, e:
+            raise UnicodeDecodeError(u'Enconing fail')
+        else:
+            d = detect(s)
+            try:
+                s = text.decode(d.get('encoding'))
+            except:
+                raise UnicodeDecodeError(u'Enconing fail')
     return s
 
 

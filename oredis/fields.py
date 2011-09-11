@@ -1,14 +1,23 @@
 # -*- coding: utf-8 -*-
-'''
-Fields for redis models
-'''
 
-import copy, uuid
+"""
+oredis.fields
+~~~~~~~~~~~~~
+
+Fields for redis models
+
+:copyright: (c) 2011 by Alexandr Lispython (alex@obout.ru).
+:license: BSD, see LICENSE for more details.
+"""
+
+import copy
+import uuid
 from utils import timer
 from datetime import datetime
 from types import IntType, NoneType
 from oredis.exceptions import ValidationError
 from oredis.utils import super_force_unicode as sfu
+
 
 def import_attr(module, name=None):
     """
@@ -24,7 +33,7 @@ def import_attr(module, name=None):
     return getattr(mod, name)
 
 
-    
+
 class Field(object):
     def __init__(self, required=False, default=None, **kwargs):
         self.required = required
@@ -59,7 +68,7 @@ class Field(object):
         self._model = model
         self._name = name
         setattr(model, name, self)
-        
+
     @property
     def pyname(self):
         assert self._name, 'field is not initialized'
@@ -76,7 +85,7 @@ class Field(object):
 
     def to_python(self, value):
         return value
-    
+
     def from_python(self, value):
         self.validate(value)
         return value
@@ -89,7 +98,7 @@ class Field(object):
         if not cmd:
             return
         self.execute_cmd(instance, cmd)
-    
+
     def load(self, instance):
         cmd = self.loadcmd(instance)
         if not cmd:
@@ -107,10 +116,10 @@ class Field(object):
     @timer
     def execute_cmd(self, instance, cmd):
         return getattr(self.redis, cmd[0])(*cmd[1:])
-        
+
     def deletecmd(self, instance):
         return ('delete', self.key(instance))
-    
+
     def loadcmd(self, instance):
         return 'get', self.key(instance)
 
@@ -119,7 +128,7 @@ class Field(object):
 
     def default(self):
         return None
-    
+
     def get_internal_type(self):
         return "Field"
 
@@ -128,11 +137,11 @@ class String(Field):
     def to_python(self, value):
         super(String, self).to_python(value)
         return sfu(value)
-    
+
     def from_python(self, value):
         super(String, self).to_python(value)
         return sfu(value)
-    
+
     def get_internal_type(self):
         return "String"
 
@@ -143,7 +152,7 @@ class Integer(Field):
         if not isinstance(value, IntType) and not isinstance(value, NoneType):
             raise ValidationError('field %s is required int value' % self.pyname)
         return True
-    
+
     def to_python(self, value):
         try:
             return int(value)
@@ -179,13 +188,13 @@ class PrimaryKey(Integer):
 
     def default(self):
         return self.next()
-    
+
     def key(self, instance=None):
         return self._model.key('all')
-    
+
     def next(self, instance):
         return self.execute_cmd(instance, ('incr', self._model.key()))
-        
+
     def savecmd(self, instance):
         return 'sadd', self.key(), self.from_python(self.__get__(instance))
 
@@ -194,7 +203,7 @@ class PrimaryKey(Integer):
 
     def loadcmd(self, instance):
         return
-    
+
     def get_internal_type(self):
         return "PrimaryKey"
 
@@ -206,13 +215,13 @@ class StringPK(String):
         if not instance:
             return self
         return instance.get_field(self._name, self.next)
-    
+
     def key(self, instance=None):
         return self._model.key('all')
 
     def next(self, instance):
         return uuid.uuid4().hex
-    
+
     def savecmd(self, instance):
         return 'sadd', self.key(), self.from_python(self.__get__(instance))
 
@@ -224,7 +233,7 @@ class StringPK(String):
 
     def get_internal_type(self):
         return "StringPK"
-        
+
 
 class FK(Field):
     def __init__(self, to, related_name = None, *args, **kwargs):
@@ -240,7 +249,7 @@ class FK(Field):
             self.to = import_attr(self.model.__module__, self.to)
         self._related_name = self._related_name or model.__class__.__name__.lower()
         setattr(self.to, self._related_name, model)
-        
+
     def __get__(self, instance, owner=None):
         return super(FK, self).__get__(instance, owner)
 
@@ -264,7 +273,7 @@ class FK(Field):
         self._model = model
         self._name = name
         setattr(model, name, self)
-        
+
     def get_internal_type(self):
         return "FK"
 
@@ -297,10 +306,10 @@ class List(Composite):
         super(List, self).__init__(*args, **kwargs)
         self.handler = handler
         self.instance = None
-    
+
     def loadcmd(self, instance):
         return 'lrange', self.key(instance), 0, -1
-        
+
     def to_python(self, value):
         value = super(List, self).to_python(value)
         return value and map(self.handler, value) or value
@@ -314,7 +323,7 @@ class List(Composite):
 
     def __len__(self):
         return self.execute_cmd(self.instance, ('llen', self.key(self.instance)))
-    
+
     def __str__(self):
         return str(self.value)
 
@@ -334,35 +343,35 @@ class List(Composite):
     def append(self,  value):
         self.execute_cmd(self.instance, ('rpush', self.key(self.instance), self.from_python(value)))
         self.load(self.instance)
-    
+
     def prepend( self, value):
         self.execute_cmd(self.instance, ('lpush', self.key(self.instance), self.from_python(value)))
         self.load(self.instance)
 
     def rpop(self):
         return self.execute_cmd(self.instance, ('rpop', self.key(self.instance)))
-    
+
     def lpop(self):
         return self.execute_cmd(self.instance, ('lpop', self.key(self.instance)))
 
     def lset(self, value, position):
         self.execute_cmd(self.instance, ('lset', self.key(self.instance), int(position), self.from_python(value)))
         self.load(self.instance)
-    
+
     def lrem( self, value, count = 0):
         self.execute_cmd(self.instance, ('lrem', self.key(self.instance), self.from_python(value), int(count), ))
         self.load(self.instance)
-    
+
     def lindex(self, index):
         return self.execute_cmd(self.instance, ('lindex', self.key(self.instance), int(index)))
 
     def trim(self, start=0, end=-1):
         self.execute_cmd(self.instance, ('ltrim', start, end))
         self.load(self.instance)
-        
+
     def lrange(self, start = 0, end =- 1):
         return self.to_python(self.execute_cmd(self.instance, ('lrange', self.key(self.instance), start, end)))
-    
+
     def get_internal_type(self):
         return "List"
 
@@ -385,7 +394,7 @@ class Set(Composite):
 
     def __iter__(self):
         return self.value.__iter__()
-    
+
     def __len__(self):
         return self.execute_cmd(self.instance, ('scard', self.key(self.instance)))
 
@@ -406,10 +415,10 @@ class Set(Composite):
 
     def validate_value(self, value):
         return True
-    
+
     def _interact(self, cmd, other):
         return self.execute_cmd(self.instance, (cmd, (self.key(self.instance), other.key(other.instance))))
-    
+
     inter = lambda self, other: self._interact('sinter', other)
     union = lambda self, other: self._interact('sunion', other)
     diff = lambda self, other: self._interact('sdiff', other)
@@ -453,7 +462,7 @@ class Link(Set):
         if not isinstance(value, self.to):
             raise ValidationError('field item %s is required %s instance value' % (self.pyname,  self.to))
         return True
-    
+
     def from_python(self, value):
         try:
             if isinstance(value, self.to): return value.id
@@ -471,7 +480,7 @@ class Link(Set):
         self._model = model
         self._name = name
         setattr(model, name, self)
-        
+
     def get_internal_type(self):
         return "Link"
 
@@ -486,7 +495,7 @@ class HashTable(Field):
 
     def __post_init__(self,  instance, *args, **kwargs):
         super(HashTable, self).__post_init__(instance, *args, **kwargs)
-        
+
     def __set__(self, instance, value):
         raise AttributeError('use object methods to change values for %s' %  self.__class__.__name__.lower())
 
@@ -495,7 +504,7 @@ class HashTable(Field):
 
     def __iter__(self):
         return self.value.__iter__()
-    
+
     def loadcmd(self, instance):
         return 'hgetall', self.key(instance)
 
@@ -507,13 +516,13 @@ class HashTable(Field):
 
     def getall(self):
         return self.execute_cmd(self.instance,  ('hgetall',  self.key(self.instance)))
-    
+
     def exist(self,  key):
         return self.execute_cmd(self.instance,  ('hexists',  self.key(self.instance), key))
-    
+
     def savecmd(self, instance):
         return
-    
+
     @property
     def value(self):
         assert self.instance, '%s is not initialized' % self.pyname
@@ -527,21 +536,21 @@ class HashTable(Field):
             return
         self.instance = instance
         return instance.set_field(self._name, self.getall())
-    
+
     def __getitem__(self, index):
         return self.value[index]
         return self.execute_cmd(self.instance,  ('hget',  self.key(self.instance),  index))
-    
+
     def __setitem__(self, index,  value):
         return self.execute_cmd(self.instance,  ('hset',  self.key(self.instance),  index,  value))
-        
+
     def __len__(self):
         return self.execute_cmd(self.instance,  ('hlen',  self.key(self.instance)))
 
     def __delitem__(self, index):
         self.execute_cmd(self.instance,  ('hdel',  self.key(self.instance), index))
         self.load(self.instance)
-    
+
     def from_python(self, value):
         return value
 
