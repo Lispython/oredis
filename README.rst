@@ -1,10 +1,11 @@
 Object-hash mapping library for Redis.
---------------------------------------
+======================================
 
 Oredis is a library for storing objects in Redis, a persistent key-value database. It includes an extensible list of validations and has very good performance.
 
 
-## How to use
+How to use
+----------
 
     from oredis.models import Model
     from oredis.manager import Manager
@@ -21,7 +22,7 @@ Oredis is a library for storing objects in Redis, a persistent key-value databas
 
         objects = NoteManager(connection = redis.Redis())
 
-     In [19]: note1 = NoteModel(title = "Hello world!",
+    In [19]: note1 = NoteModel(title = "Hello world!",
         ....: body="I am currently engaged in teaching my brother to program.
         He is a total beginner, but very smart. (And he actually wants to learn).
         I've noticed that some of our sessions have gotten bogged down in minor details,
@@ -37,6 +38,26 @@ Oredis is a library for storing objects in Redis, a persistent key-value databas
      In [22]: note1.title
 
 
-## Credits
+
+INSTALLATION
+------------
+
+To use oredis  use pip or easy_install:
+
+`pip install oredis`
+
+or
+
+`easy_install oredis`
+
+
+CONTRIBUTE
+----------
+
+Fork https://github.com/lispython/oredis/ , create commit and pull request.
+
+
+Credits
+-------
 
 Thanks Alexander Solovyov for some concepts are taken from orem library.
