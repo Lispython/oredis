@@ -1,11 +1,16 @@
 Object-hash mapping library for Redis.
 ======================================
 
+.. image:: https://secure.travis-ci.org/Lispython/oredis.png
+	   :target: https://secure.travis-ci.org/Lispython/oredis
+
 Oredis is a library for storing objects in Redis, a persistent key-value database. It includes an extensible list of validations and has very good performance.
 
 
 How to use
 ----------
+
+.. code-block:: python
 
     from oredis.models import Model
     from oredis.manager import Manager

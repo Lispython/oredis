@@ -5,7 +5,7 @@ test:
 
 
 coverage:
-	python setup.py nosetests  --with-coverage --cover-package=human_curl --cover-html --cover-html-dir=coverage_out coverage
+	python setup.py nosetests  --with-coverage --cover-package=oredis --cover-html --cover-html-dir=coverage_out coverage
 
 
 shell:
@@ -28,3 +28,6 @@ find-print:
 mongo-start:
 	rm -rf /var/lib/mongodb/mongod.lock
 	sudo mongod --fork -f /etc/mongodb.conf --auth --logpath /var/log/mongodb/mongodb.log --logappend
+
+travis:
+	python setup.py nosetests --tests tests.py

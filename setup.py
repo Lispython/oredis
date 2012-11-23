@@ -31,6 +31,9 @@ except Exception, e:
     print(e)
     readme_content = __doc__
 
+tests_require = [
+    'nose',
+    'unittest2']
 
 setup(
     name='oredis',
@@ -50,6 +53,7 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python'
         ],
+    tests_require=tests_require,
     packages=["oredis"],
     platforms='any',
     test_suite='tests',
